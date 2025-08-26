@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"strconv"
 )
 
 type Task struct {
@@ -49,10 +50,12 @@ func Tasks(limit int, like string) ([]*Task, error) {
 
 	var tasks []*Task
 	for rows.Next() {
+		var idInt int64
 		t := &Task{}
-		if err := rows.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
+		if err := rows.Scan(&idInt, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
 			return nil, err
 		}
+		t.ID = strconv.FormatInt(idInt, 10)
 		tasks = append(tasks, t)
 	}
 	if tasks == nil {
@@ -77,10 +80,12 @@ func TasksByDate(limit int, date string) ([]*Task, error) {
 
 	var tasks []*Task
 	for rows.Next() {
+		var idInt int64
 		t := &Task{}
-		if err := rows.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
+		if err := rows.Scan(&idInt, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
 			return nil, err
 		}
+		t.ID = strconv.FormatInt(idInt, 10)
 		tasks = append(tasks, t)
 	}
 	if tasks == nil {
@@ -94,9 +99,12 @@ func GetTask(id string) (*Task, error) {
 	const q = `
 		SELECT id, date, title, comment, repeat
 		FROM scheduler WHERE id = ?`
-	if err := DB.QueryRow(q, id).Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
+
+	var idInt int64
+	if err := DB.QueryRow(q, id).Scan(&idInt, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
 		return nil, err
 	}
+	t.ID = strconv.FormatInt(idInt, 10)
 	return t, nil
 }
 

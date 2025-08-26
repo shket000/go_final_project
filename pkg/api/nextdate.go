@@ -210,7 +210,8 @@ func isLastDayOfMonth(t time.Time) bool {
 }
 
 func isPrevLastDayOfMonth(t time.Time) bool {
-	y, m, d := t.Date()
+	// true, если t + 2 дня == первый день следующего месяца
+	y, m, _ := t.Date()
 	firstNext := time.Date(y, m+1, 1, 0, 0, 0, 0, t.Location())
-	return d+2 == firstNext.Day()
+	return t.AddDate(0, 0, 2).Equal(firstNext)
 }
