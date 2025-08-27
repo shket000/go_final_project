@@ -39,7 +39,8 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
-	writeJSON(w, map[string]string{"date": next})
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	_, _ = w.Write([]byte(next))
 }
 
 // NextDate вычисляет ближайшую дату > now по правилу repeat, начиная от dstart.

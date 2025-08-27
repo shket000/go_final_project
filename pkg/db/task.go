@@ -139,6 +139,16 @@ func UpdateTaskDate(id string, newDate string) error {
 
 func DeleteTask(id string) error {
 	const q = `DELETE FROM scheduler WHERE id = ?`
-	_, err := DB.Exec(q, id)
-	return err
+	res, err := DB.Exec(q, id)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
