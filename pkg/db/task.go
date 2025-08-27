@@ -61,7 +61,12 @@ func Tasks(limit int, like string) ([]*Task, error) {
 	if tasks == nil {
 		tasks = []*Task{}
 	}
-	return tasks, rows.Err()
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
+
 }
 
 // TasksByDate выбирает задачи ровно на указанную дату (YYYYMMDD), с лимитом.
@@ -91,7 +96,12 @@ func TasksByDate(limit int, date string) ([]*Task, error) {
 	if tasks == nil {
 		tasks = []*Task{}
 	}
-	return tasks, rows.Err()
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
+
 }
 
 func GetTask(id string) (*Task, error) {
