@@ -11,42 +11,40 @@ import (
 // POST /api/task/done?id=<number>
 func taskDoneHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		writeError(w, errors.New("method not allowed"), http.StatusMethodNotAllowed) // Неверный метод
 		return
 	}
 
 	id := stringsTrim(r.URL.Query().Get("id"))
 	if id == "" {
-		writeError(w, errors.New("id is required"))
+		writeError(w, errors.New("id is required"), http.StatusBadRequest) // Отсутствует id
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusNotFound) // Задача не найдена
 		return
 	}
 
-	// Если правило пустое — просто удаляем
 	if stringsTrim(task.Repeat) == "" {
 		if err := db.DeleteTask(id); err != nil {
-			writeError(w, err)
+			writeError(w, err, http.StatusInternalServerError) // Ошибка при удалении задачи
 			return
 		}
-		writeJSON(w, map[string]any{})
+		writeJSON(w, map[string]any{}, http.StatusOK)
 		return
 	}
 
-	// Иначе вычисляем следующую дату и обновляем её
 	now := time.Now()
 	next, err := NextDate(now, task.Date, task.Repeat)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusBadRequest) // Ошибка в вычислении следующей даты
 		return
 	}
 	if err := db.UpdateTaskDate(id, next); err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusInternalServerError) // Ошибка при обновлении даты задачи
 		return
 	}
-	writeJSON(w, map[string]any{})
+	writeJSON(w, map[string]any{}, http.StatusOK)
 }

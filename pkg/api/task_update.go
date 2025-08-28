@@ -21,30 +21,29 @@ type updateTaskReq struct {
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var req updateTaskReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusBadRequest) // Неверный формат тела запроса
 		return
 	}
 	if stringsTrim(req.ID) == "" {
-		writeError(w, errors.New("id is required"))
+		writeError(w, errors.New("id is required"), http.StatusBadRequest) // Отсутствует id
 		return
 	}
 	if stringsTrim(req.Title) == "" {
-		writeError(w, errors.New("title is required"))
+		writeError(w, errors.New("title is required"), http.StatusBadRequest) // Отсутствует заголовок
 		return
 	}
 	if stringsTrim(req.Date) == "" {
-		writeError(w, errors.New("date is required"))
+		writeError(w, errors.New("date is required"), http.StatusBadRequest) // Отсутствует дата
 		return
 	}
 	if _, err := time.Parse(DateFmt, req.Date); err != nil {
-		writeError(w, errors.New("invalid date format"))
+		writeError(w, errors.New("invalid date format"), http.StatusBadRequest) // Неверный формат даты
 		return
 	}
 
-	// Если repeat указан — проверяем правило (и получим next, но менять дату по автологике при update не обязаны).
 	if stringsTrim(req.Repeat) != "" {
 		if _, err := NextDate(time.Now(), req.Date, req.Repeat); err != nil {
-			writeError(w, err)
+			writeError(w, err, http.StatusBadRequest) // Ошибка в вычислении повторений
 			return
 		}
 	}
@@ -57,8 +56,8 @@ func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		Repeat:  req.Repeat,
 	})
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusInternalServerError) // Ошибка при обновлении задачи
 		return
 	}
-	writeJSON(w, map[string]any{})
+	writeJSON(w, map[string]any{}, http.StatusOK)
 }

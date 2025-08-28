@@ -11,14 +11,14 @@ import (
 func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := stringsTrim(r.URL.Query().Get("id"))
 	if id == "" {
-		writeError(w, errors.New("id is required"))
+		writeError(w, errors.New("id is required"), http.StatusBadRequest) // Отсутствует id
 		return
 	}
 
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusNotFound) // Задача не найдена
 		return
 	}
-	writeJSON(w, task)
+	writeJSON(w, task, http.StatusOK)
 }

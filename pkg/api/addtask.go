@@ -37,40 +37,38 @@ type addTaskReq struct {
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var req addTaskReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusBadRequest) // Неверный формат тела запроса
 		return
 	}
 
 	if stringsTrim(req.Title) == "" {
-		writeError(w, errors.New("title is required"))
+		writeError(w, errors.New("title is required"), http.StatusBadRequest) // Отсутствует заголовок
 		return
 	}
 
 	now := time.Now()
-	// Date: если пусто — сегодня
+	// Если дата пустая — ставим сегодняшнюю
 	if stringsTrim(req.Date) == "" {
 		req.Date = now.Format(DateFmt)
 	} else {
 		if _, err := time.Parse(DateFmt, req.Date); err != nil {
-			writeError(w, errors.New("invalid date format"))
+			writeError(w, errors.New("invalid date format"), http.StatusBadRequest) // Неверный формат даты
 			return
 		}
 	}
 
-	// Проверка/коррекция повторений: если repeat указан — валидируем и при необходимости сдвигаем на ближайшую > today
+	// Проверка повторений
 	if stringsTrim(req.Repeat) != "" {
 		next, err := NextDate(now, req.Date, req.Repeat)
 		if err != nil {
-			writeError(w, err)
+			writeError(w, err, http.StatusBadRequest) // Ошибка в вычислении повторений
 			return
 		}
-		// если исходная дата не в будущем — берём next
 		t, _ := time.Parse(DateFmt, req.Date)
 		if !t.After(stripTime(now)) {
 			req.Date = next
 		}
 	} else {
-		// одноразовая: если дата в прошлом — ставим сегодня
 		t, _ := time.Parse(DateFmt, req.Date)
 		if t.Before(stripTime(now)) {
 			req.Date = now.Format(DateFmt)
@@ -84,11 +82,11 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		Repeat:  req.Repeat,
 	})
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusInternalServerError) // Ошибка при добавлении задачи
 		return
 	}
 
-	writeJSON(w, map[string]string{"id": itoa(id)})
+	writeJSON(w, map[string]string{"id": itoa(id)}, http.StatusCreated)
 }
 
 func stringsTrim(s string) string { return strings.TrimSpace(s) }

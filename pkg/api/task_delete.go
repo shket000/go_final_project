@@ -11,12 +11,12 @@ import (
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := stringsTrim(r.URL.Query().Get("id"))
 	if id == "" {
-		writeError(w, errors.New("id is required"))
+		writeError(w, errors.New("id is required"), http.StatusBadRequest) // Отсутствует id
 		return
 	}
 	if err := db.DeleteTask(id); err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusInternalServerError) // Ошибка при удалении задачи
 		return
 	}
-	writeJSON(w, map[string]any{})
+	writeJSON(w, map[string]any{}, http.StatusOK)
 }

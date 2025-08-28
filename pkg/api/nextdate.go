@@ -29,14 +29,14 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		now, err = time.ParseInLocation(DateFmt, nowStr, time.Local)
 		if err != nil {
-			writeError(w, errors.New("invalid now date"))
+			writeError(w, errors.New("invalid now date"), http.StatusBadRequest)
 			return
 		}
 	}
 
 	next, err := NextDate(now, dstart, repeat)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")

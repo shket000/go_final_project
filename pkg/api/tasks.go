@@ -26,10 +26,10 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	if search == "" {
 		tasks, err := db.Tasks(defaultLimit, "")
 		if err != nil {
-			writeError(w, err)
+			writeError(w, err, http.StatusBadRequest)
 			return
 		}
-		writeJSON(w, tasksResp{Tasks: tasks})
+		writeJSON(w, tasksResp{Tasks: tasks}, http.StatusOK)
 		return
 	}
 
@@ -40,10 +40,10 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		date := d.Format(DateFmt)
 		tasks, err := db.TasksByDate(defaultLimit, date)
 		if err != nil {
-			writeError(w, err)
+			writeError(w, err, http.StatusBadRequest)
 			return
 		}
-		writeJSON(w, tasksResp{Tasks: tasks})
+		writeJSON(w, tasksResp{Tasks: tasks}, http.StatusOK)
 		return
 	}
 
@@ -51,8 +51,8 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	pattern := "%" + search + "%"
 	tasks, err := db.Tasks(defaultLimit, pattern)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, err, http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, tasksResp{Tasks: tasks})
+	writeJSON(w, tasksResp{Tasks: tasks}, http.StatusOK)
 }
