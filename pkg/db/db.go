@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"os"
+	"strconv"
 
 	_ "modernc.org/sqlite"
 )
@@ -47,4 +48,38 @@ func Close() error {
 		return DB.Close()
 	}
 	return nil
+}
+
+// TasksBySearch выполняет поиск задач с учетом фильтрации по подстроке.
+func TasksBySearch(limit int, pattern string) ([]*Task, error) {
+	const q = `
+		SELECT id, date, title, comment, repeat
+		FROM scheduler
+		WHERE title LIKE ? OR comment LIKE ?
+		ORDER BY date
+		LIMIT ?`
+	rows, err := DB.Query(q, pattern, pattern, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*Task
+	for rows.Next() {
+		var idInt int64
+		t := &Task{}
+		if err := rows.Scan(&idInt, &t.Date, &t.Title, &t.Comment, &t.Repeat); err != nil {
+			return nil, err
+		}
+		t.ID = strconv.FormatInt(idInt, 10)
+		tasks = append(tasks, t)
+	}
+	if tasks == nil {
+		tasks = []*Task{}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }

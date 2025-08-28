@@ -47,9 +47,9 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// LIKE поиск
+	// Используем новый метод для LIKE поиска
 	pattern := "%" + search + "%"
-	tasks, err := db.Tasks(defaultLimit, pattern)
+	tasks, err := db.TasksBySearch(defaultLimit, pattern)
 	if err != nil {
 		writeError(w, err, http.StatusBadRequest)
 		return
