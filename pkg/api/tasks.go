@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -34,14 +33,10 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Матчим дату вида 02.01.2006
-	dateRe := regexp.MustCompile(`^\d{2}\.\d{2}\.\d{4}$`)
-	if dateRe.MatchString(search) {
-		d, err := time.Parse("02.01.2006", search)
-		if err != nil {
-			writeError(w, err)
-			return
-		}
+	// Попробуем распарсить дату вида 02.01.2006
+	if _, err := time.Parse("02.01.2006", search); err == nil {
+		// Если дата корректная, ищем задачи по дате
+		d, _ := time.Parse("02.01.2006", search) // игнорируем ошибку, она уже была проверена
 		date := d.Format(DateFmt)
 		tasks, err := db.TasksByDate(defaultLimit, date)
 		if err != nil {
